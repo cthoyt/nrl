@@ -7,7 +7,7 @@ from typing import Optional
 from gensim.models import Word2Vec
 from igraph import Graph
 
-from .random_walk import RandomWalkParameters, get_random_walks
+from .random_walk import RandomWalkParameters, random_walks
 from .word2vec import Word2VecParameters, get_word2vec_from_walks
 
 __all__ = [
@@ -19,7 +19,7 @@ def run_deepwalk(graph: Graph,
                  random_walk_parameters: Optional[RandomWalkParameters] = None,
                  word2vec_parameters: Optional[Word2VecParameters] = None) -> Word2Vec:
     """Build a Word2Vec model using random walks on the graph"""
-    walks = get_random_walks(
+    walks = random_walks(
         graph=graph,
         random_walk_parameters=random_walk_parameters,
     )

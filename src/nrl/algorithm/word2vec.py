@@ -69,6 +69,9 @@ def get_word2vec_from_walks(walks: Iterable[Iterable[str]],
     if word2vec_parameters is None:
         word2vec_parameters = Word2VecParameters()
 
+    # TODO hack this up to be an itertor so Word2Vec doesn't complain
+    walks = [list(x) for x in walks]
+
     return Word2Vec(
         walks,
         size=word2vec_parameters.size,
