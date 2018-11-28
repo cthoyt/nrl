@@ -4,6 +4,7 @@
 
 import random
 from dataclasses import dataclass
+from typing import Iterable, List, Optional
 
 from igraph import Graph, Vertex
 
@@ -12,17 +13,47 @@ from igraph import Graph, Vertex
 class RandomWalkParameters:
     """"""
 
+    #: The number of paths to get
+    number_paths: int = 10
 
-def get_random_walks(graph: Graph, number_paths: int, max_path_length: int):
+    #:
+    max_path_length: int = 40
+
+    # TODO use this in get_random_walks
+    #: Probability of restarting the path. If None, doesn't consider.
+    restart_probability: Optional[float] = None
+
+    # TODO use this in get_random_walks
+    #: random_walk_parameters
+    algorithm: str = 'standard'
+
+
+def get_random_walks(graph: Graph,
+                     random_walk_parameters: Optional[RandomWalkParameters] = None) -> Iterable[List[Vertex]]:
     """"""
-    return list(_get_random_walks_iter(
+    if random_walk_parameters is None:
+        random_walk_parameters = RandomWalkParameters()
+
+    return _get_random_walks_iter(
         graph=graph,
-        number_paths=number_paths,
-        max_path_length=max_path_length,
-    ))
+        random_walk_parameters=random_walk_parameters,
+    )
 
 
-def get_random_walk(graph: Graph, start: Vertex, length: int):
+def _get_random_walks_iter(graph: Graph,
+                           random_walk_parameters: Optional[RandomWalkParameters] = None) -> Iterable[List[Vertex]]:
+    """Get random walks for all nodes."""
+    if random_walk_parameters is None:
+        random_walk_parameters = RandomWalkParameters()
+
+    for _ in range(random_walk_parameters.number_paths):
+        nodes = list(graph.vs)
+        random.shuffle(nodes)
+        for node in graph.vs:
+            yield get_random_walk(graph, node, random_walk_parameters.max_path_length)
+
+
+def get_random_walk(graph: Graph, start: Vertex, length: int) -> List[Vertex]:
     """Generate one random walk for one node.
 
     :param graph: The graph to investigate
@@ -30,7 +61,7 @@ def get_random_walk(graph: Graph, start: Vertex, length: int):
     :param length: The length of the path to get
     """
     path = [start]
-
+    
     while len(path) < length:
         tail = path[-1]
 
@@ -40,15 +71,6 @@ def get_random_walk(graph: Graph, start: Vertex, length: int):
         path.append(random.choice(graph.neighborhood(tail)))
 
     return path
-
-
-def _get_random_walks_iter(graph: Graph, number_paths: int, max_path_length: int):
-    """Get random walks for all nodes."""
-    for _ in range(number_paths):
-        nodes = list(graph.vs)
-        random.shuffle(nodes)
-        for node in graph.vs:
-            yield get_random_walk(graph, node, max_path_length)
 
 
 def get_random_walk_with_restart(graph: Graph, start: Vertex, max_path_length: int, alpha: float = 0.0):
