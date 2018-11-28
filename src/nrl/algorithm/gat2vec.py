@@ -7,15 +7,14 @@ from typing import Optional
 from gensim.models import Word2Vec
 from igraph import Graph, VertexSeq
 
-from .deepwalk import _build_word2vec
-from .word2vec import Word2VecParameters
 from .random_walk import RandomWalkParameters, get_random_walks
+from .word2vec import Word2VecParameters, get_word2vec_from_walks
 
 
-def do_gat2vec_unsupervized(graph: Graph,
-                            structural_vertices: VertexSeq,
-                            random_walk_parameters: Optional[RandomWalkParameters] = None,
-                            word2vec_parameters: Optional[Word2VecParameters] = None) -> Word2Vec:
+def run_gat2vec_unsupervised(graph: Graph,
+                             structural_vertices: VertexSeq,
+                             random_walk_parameters: Optional[RandomWalkParameters] = None,
+                             word2vec_parameters: Optional[Word2VecParameters] = None) -> Word2Vec:
     """
 
     :param graph:
@@ -43,7 +42,7 @@ def do_gat2vec_unsupervized(graph: Graph,
         for walk in walks
     )
 
-    return _build_word2vec(
+    return get_word2vec_from_walks(
         walks=walks,
         word2vec_parameters=word2vec_parameters,
     )

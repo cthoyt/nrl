@@ -3,6 +3,7 @@
 """Word2Vec utilities."""
 
 from dataclasses import dataclass
+from typing import Iterable, Optional
 
 import numpy as np
 import pandas as pd
@@ -14,6 +15,7 @@ __all__ = [
     'save_word2vec',
     'get_cosine_similarity_df',
     'get_cosine_similarity',
+    'get_word2vec_from_walks',
 ]
 
 
@@ -59,3 +61,20 @@ def get_cosine_similarity(word2vec: Word2Vec) -> np.ndarray:
     Warning; might be very big!
     """
     return 1 - cosine_similarity(word2vec.wv.vectors)
+
+
+def get_word2vec_from_walks(walks: Iterable[Iterable[str]],
+                            word2vec_parameters: Optional[Word2VecParameters] = None) -> Word2Vec:
+    """"""
+    if word2vec_parameters is None:
+        word2vec_parameters = Word2VecParameters()
+
+    return Word2Vec(
+        walks,
+        size=word2vec_parameters.size,
+        window=word2vec_parameters.window,
+        min_count=word2vec_parameters.min_count,
+        sg=word2vec_parameters.sg,
+        hs=word2vec_parameters.hs,
+        workers=word2vec_parameters.workers,
+    )
