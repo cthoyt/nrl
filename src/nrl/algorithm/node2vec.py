@@ -1,19 +1,57 @@
+# -*- coding: utf-8 -*-
+
+"""Algorithms for generating random walks for Node2vec."""
+
 import random
+from typing import List, Optional
 
 import numpy as np
+from gensim.models import Word2Vec
+from igraph import Graph, Vertex
+
+from .random_walk import RandomWalkParameters
+from .word2vec import Word2VecParameters, get_word2vec_from_walks
+
+__all__ = [
+    'run_node2vec',
+]
+
+WEIGHT = 'weight'
+
+
+def run_node2vec(graph: Graph,
+                 random_walk_parameters: Optional[RandomWalkParameters] = None,
+                 word2vec_parameters: Optional[Word2VecParameters] = None) -> Word2Vec:
+    """Run node2vec."""
+    walker = Node2VecWalker(graph=graph, is_directed=False, p=1.0, q=1.0)
+    walks = walker.simulate_walks(
+        walk_length=random_walk_parameters.max_path_length,
+        num_walks=random_walk_parameters.number_paths,
+    )
+
+    return get_word2vec_from_walks(
+        walks,
+        word2vec_parameters=word2vec_parameters
+    )
 
 
 class Node2VecWalker:
     """Create walks using the Node2Vec algorithm for use with Word2Vec."""
 
-    def __init__(self, graph, is_directed, p, q):
+    def __init__(self, graph: Graph, is_directed: bool, p: float, q: float):
         self.graph = graph
         self.is_directed = is_directed
         self.p = p
         self.q = q
-        self.alias_nodes, self.alias_edges = self.preprocess_transition_probs(self.graph, self.p, self.q)
 
-    def node2vec_walk(self, walk_length, start):
+        self.alias_nodes = self._get_alias_nodes(graph)
+
+        if is_directed:
+            self.alias_edges = self._get_directed_alias_edges(graph, p, q)
+        else:
+            self.alias_edges = self._get_undirected_alias_edges(graph, p, q)
+
+    def node2vec_walk(self, walk_length: int, start: Vertex):
         """Simulate a random walk starting from start node."""
         walk = [start]
 
@@ -31,10 +69,10 @@ class Node2VecWalker:
 
         return walk
 
-    def simulate_walks(self, num_walks, walk_length):
+    def simulate_walks(self, num_walks: int, walk_length: int):
         """Repeatedly simulate random walks from each node."""
         walks = []
-        nodes = list(self.graph.nodes())
+        nodes = list(self.graph.vs)
         for _ in range(num_walks):
             random.shuffle(nodes)
             for node in nodes:
@@ -46,58 +84,61 @@ class Node2VecWalker:
 
         return walks
 
-    def preprocess_transition_probs(self, graph, p, q):
-        """Preprocessing of transition probabilities for guiding the random walks."""
-        is_directed = self.is_directed
-
+    @staticmethod
+    def _get_alias_nodes(graph: Graph):
         alias_nodes = {}
-        for node in graph.nodes():
-            unnormalized_probs = [
-                graph[node][neighbor]['weight']
-                for neighbor in sorted(graph.neighbors(node))
-            ]
-            norm_const = sum(unnormalized_probs)
-            normalized_probs = [
-                float(u_prob) / norm_const
-                for u_prob in unnormalized_probs
-            ]
-            alias_nodes[node] = alias_setup(normalized_probs)
 
+        for vertex in graph.vs:
+            neighbor_weights = [
+                graph[vertex][neighbor][WEIGHT]
+                for neighbor in sorted(graph.neighborhood(vertex))
+            ]
+            normalized_neighbor_weights = normalize(neighbor_weights)
+            alias_nodes[vertex] = alias_setup(normalized_neighbor_weights)
+
+        return alias_nodes
+
+    @staticmethod
+    def _get_directed_alias_edges(graph: Graph, p: float, q: float):
+        return {
+            (source, target): get_alias_edge(graph, source, target, p, q)
+            for source, target in graph.es
+        }
+
+    @staticmethod
+    def _get_undirected_alias_edges(graph, p: float, q: float):
         alias_edges = {}
 
-        if is_directed:
-            for source, target in graph.edges():
-                alias_edges[source, target] = get_alias_edge(graph, p, q, source, target)
-        else:
-            for source, target in graph.edges():
-                alias_edges[source, target] = get_alias_edge(graph, p, q, source, target)
-                alias_edges[target, source] = get_alias_edge(graph, p, q, target, source)
+        for source, target in graph.es:
+            alias_edges[source, target] = get_alias_edge(graph, source, target, p, q)
+            alias_edges[target, source] = get_alias_edge(graph, target, source, p, q)
 
-        return alias_nodes, alias_edges
+        return alias_edges
 
 
-def get_alias_edge(graph, source, target, p, q):
+def get_alias_edge(graph: Graph, source: Vertex, target: Vertex, p: float, q: float):
     """Get the alias edge setup lists for a given edge."""
     unnormalized_probs = []
 
     for target_neighbor in sorted(graph.neighbors(target)):
         if target_neighbor == source:
-            unnormalized_probs.append(graph[target][target_neighbor]['weight'] / p)
+            unnormalized_probs.append(graph[target][target_neighbor][WEIGHT] / p)
         elif graph.has_edge(target_neighbor, source):
-            unnormalized_probs.append(graph[target][target_neighbor]['weight'])
+            unnormalized_probs.append(graph[target][target_neighbor][WEIGHT])
         else:
-            unnormalized_probs.append(graph[target][target_neighbor]['weight'] / q)
+            unnormalized_probs.append(graph[target][target_neighbor][WEIGHT] / q)
 
-    norm_const = sum(unnormalized_probs)
-    normalized_probs = [
-        float(u_prob) / norm_const
-        for u_prob in unnormalized_probs
-    ]
+    normalized_probs = normalize(unnormalized_probs)
 
     return alias_setup(normalized_probs)
 
 
-def alias_setup(probs):
+def normalize(numbers: List[float]) -> List[float]:
+    total = sum(numbers)
+    return [number / total for number in numbers]
+
+
+def alias_setup(probs: List[float]):
     """Compute utility lists for non-uniform sampling from discrete distributions.
 
     Refer to https://hips.seas.harvard.edu/blog/2013/03/03/the-alias-method-efficient-sampling-with-many-discrete-outcomes/
