@@ -4,6 +4,7 @@
 
 import unittest
 
+import numpy
 from gensim.models import Word2Vec
 
 from nrl.algorithm.node2vec import run_node2vec
@@ -18,6 +19,10 @@ class TestNode2Vec(unittest.TestCase):
     def test_node2vec(self):
         """Test Node2Vec."""
         graph = get_test_network()
+        numpy.random.seed(0)
+        graph.vs["weight"] = list(numpy.random.gamma(2.0, size=len(graph.vs)))
+        graph.es["weight"] = list(numpy.random.gamma(2.0, size=len(graph.es)))
+
         random_walk_parameters = RandomWalkParameters(
             number_paths=5,
             max_path_length=10,
