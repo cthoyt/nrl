@@ -10,11 +10,11 @@ jobs:
   include:
     # lint stage
     - stage: lint
-    - env: TOXENV=flake8
+      env: TOXENV=flake8
     - env: TOXENV=pyroma
     # test stage
     - stage: test
-    - env: TOXENV=py
+      env: TOXENV=py
 matrix:
   allow_failures:
       - env: TOXENV=flake8
