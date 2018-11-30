@@ -18,7 +18,7 @@ __all__ = [
 def run_deepwalk(graph: Graph,
                  random_walk_parameters: Optional[RandomWalkParameters] = None,
                  word2vec_parameters: Optional[Word2VecParameters] = None) -> Word2Vec:
-    """Build a Word2Vec model using random walks on the graph"""
+    """Build a Word2Vec model using random walks on the graph."""
     walks = random_walks(
         graph=graph,
         random_walk_parameters=random_walk_parameters,
