@@ -11,5 +11,5 @@ __all__ = [
 
 
 def read_ncol_graph(path: str) -> Graph:
-    """Read a graph"""
+    """Read a graph."""
     return igraph.read(path, format='ncol', directed=False, names=True)

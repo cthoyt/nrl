@@ -65,7 +65,7 @@ def get_cosine_similarity(word2vec: Word2Vec) -> np.ndarray:
 
 def get_word2vec_from_walks(walks: Iterable[Iterable[str]],
                             word2vec_parameters: Optional[Word2VecParameters] = None) -> Word2Vec:
-    """"""
+    """Train Word2Vec with the given walks."""
     if word2vec_parameters is None:
         word2vec_parameters = Word2VecParameters()
 

@@ -15,13 +15,12 @@ def run_gat2vec_unsupervised(graph: Graph,
                              structural_vertices: VertexSeq,
                              random_walk_parameters: Optional[RandomWalkParameters] = None,
                              word2vec_parameters: Optional[Word2VecParameters] = None) -> Word2Vec:
-    """
+    """Run the unsupervised GAT2VEC algorithm.
 
     :param graph:
     :param structural_vertices:
     :param random_walk_parameters:
     :param word2vec_parameters:
-    :return:
     """
     # double the maximum path length, because GAT2VEC used this as the heuristic
     random_walk_parameters.max_path_length *= 2
