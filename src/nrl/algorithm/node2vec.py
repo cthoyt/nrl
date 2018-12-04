@@ -3,14 +3,16 @@
 """Algorithms for generating random walks for Node2vec."""
 
 import random
+from collections import defaultdict
 from typing import List, Mapping, Optional, Tuple
 
 import numpy as np
 from gensim.models import Word2Vec
 from igraph import Graph, Vertex
 
-from .random_walk import RandomWalkParameters
-from .word2vec import Word2VecParameters, get_word2vec_from_walks
+from nrl.io import read_ncol_graph
+from nrl.algorithm.random_walk import RandomWalkParameters
+from nrl.algorithm.word2vec import Word2VecParameters, get_word2vec_from_walks
 
 __all__ = [
     'run_node2vec',
@@ -25,20 +27,21 @@ def run_node2vec(graph: Graph,
                  random_walk_parameters: Optional[RandomWalkParameters] = None,
                  word2vec_parameters: Optional[Word2VecParameters] = None) -> Word2Vec:
     """Run node2vec."""
-    walker = Node2VecWalker(graph=graph, is_directed=False, p=1.0, q=1.0)
-    walks = walker.simulate_walks(
-        walk_length=random_walk_parameters.max_path_length,
-        num_walks=random_walk_parameters.number_paths,
-    )
+    # walker = Node2VecWalker(graph=graph, is_directed=False, p=1.0, q=1.0)
+    # walks = walker.simulate_walks(
+    #     walk_length=random_walk_parameters.max_path_length,
+    #     num_walks=random_walk_parameters.number_paths,
+    # )
+    #
+    # return get_word2vec_from_walks(
+    #     walks,
+    #     word2vec_parameters=word2vec_parameters
+    # )
 
-    return get_word2vec_from_walks(
-        walks,
-        word2vec_parameters=word2vec_parameters
-    )
 
-class Node2Vec:
+class Node2Vec_temp:
     FIRST_TRAVEL_KEY = 'first_travel_key'
-    PROBABILITIES_KEY = 'probabilities'
+    PROBS_KEY = 'probabilities'
     NEIGHBORS_KEY = 'neighbors'
     WEIGHT_KEY = 'weight'
     NUM_WALKS_KEY = 'num_walks'
@@ -46,7 +49,8 @@ class Node2Vec:
     P_KEY = 'p'
     Q_KEY = 'q'
 
-    def __init__(self, graph, dimensions=128, walk_length=80, num_walks=10, p=1, q=1, weight_key='weight',
+    def __init__(self, graph, dimensions=128, walk_length=80, num_walks=10, p=1, q=1,
+                 weight_key='weight',
                  workers=1, sampling_strategy=None, quiet=False):
         """
         Initiates the Node2Vec object, precomputes walking probabilities and generates the walks.
@@ -94,60 +98,75 @@ class Node2Vec:
         d_graph = defaultdict(dict)
         first_travel_done = set()
 
-        nodes_generator = self.graph.nodes() if self.quiet \
-            else tqdm(self.graph.nodes(), desc='Computing transition probabilities')
-
-        for source in nodes_generator:
-
+        for source in self.graph.vs:
             # Init probabilities dict for first travel
-            if self.PROBABILITIES_KEY not in d_graph[source]:
-                d_graph[source][self.PROBABILITIES_KEY] = dict()
+            if self.PROBS_KEY not in d_graph[source['name']]:
+                d_graph[source['name']][self.PROBS_KEY] = dict()
 
-            for current_node in self.graph.neighbors(source):
-
+            for current_node_id in self.graph.neighbors(source):
+                current_node = self.graph.vs[current_node_id]
+                current_node_name = int(current_node['name'])
                 # Init probabilities dict
-                if self.PROBABILITIES_KEY not in d_graph[current_node]:
-                    d_graph[current_node][self.PROBABILITIES_KEY] = dict()
+                if self.PROBS_KEY not in d_graph[current_node_name]:
+                    d_graph[current_node_name][self.PROBS_KEY] = dict()
 
-                unnormalized_weights = list()
+                unnormalized_weights = list()  # TODO: why not a dict?
                 first_travel_weights = list()
                 d_neighbors = list()
 
                 # Calculate unnormalized weights
-                for destination in self.graph.neighbors(current_node):
+                for target_id in self.graph.neighbors(current_node):
+                    target = self.graph.vs[target_id]
+                    p = self._get_p(current_node_name)
+                    q = self._get_q(current_node_name)
 
-                    p = self.sampling_strategy[current_node].get(self.P_KEY,
-                                                                 self.p) if current_node in self.sampling_strategy else self.p
-                    q = self.sampling_strategy[current_node].get(self.Q_KEY,
-                                                                 self.q) if current_node in self.sampling_strategy else self.q
-
-                    if destination == source:  # Backwards probability
-                        ss_weight = self.graph[current_node][destination].get(self.weight_key, 1) * 1 / p
-                    elif destination in self.graph[source]:  # If the neighbor is connected to the source
-                        ss_weight = self.graph[current_node][destination].get(self.weight_key, 1)
-                    else:
-                        ss_weight = self.graph[current_node][destination].get(self.weight_key, 1) * 1 / q
-
+                    edge_weight = \
+                        self.graph.es.select(_between=([current_node.index], [target.index]))[
+                            self.weight_key][0]
+                    ss_weight = self._compute_prob(source.index, target.index, p, q, edge_weight)
                     # Assign the unnormalized sampling strategy weight, normalize during random walk
                     unnormalized_weights.append(ss_weight)
-                    if current_node not in first_travel_done:
-                        first_travel_weights.append(self.graph[current_node][destination].get(self.weight_key, 1))
-                    d_neighbors.append(destination)
+
+                    if current_node_name not in first_travel_done:
+                        first_travel_weights.append(edge_weight)
+                    d_neighbors.append(int(target['name']))
 
                 # Normalize
                 unnormalized_weights = np.array(unnormalized_weights)
-                d_graph[current_node][self.PROBABILITIES_KEY][
-                    source] = unnormalized_weights / unnormalized_weights.sum()
+                d_graph[current_node_name][self.PROBS_KEY][
+                    int(source['name'])] = unnormalized_weights / unnormalized_weights.sum()
 
-                if current_node not in first_travel_done:
+                if current_node_name not in first_travel_done:
                     unnormalized_weights = np.array(first_travel_weights)
-                    d_graph[current_node][self.FIRST_TRAVEL_KEY] = unnormalized_weights / unnormalized_weights.sum()
-                    first_travel_done.add(current_node)
+                    d_graph[current_node_name][
+                        self.FIRST_TRAVEL_KEY] = unnormalized_weights / unnormalized_weights.sum()
+                    first_travel_done.add(current_node_name)
 
                 # Save neighbors
-                d_graph[current_node][self.NEIGHBORS_KEY] = d_neighbors
+                d_graph[current_node_name][self.NEIGHBORS_KEY] = d_neighbors
 
         return d_graph
+
+    def _get_p(self, current_node):
+        p = self.sampling_strategy[current_node].get(
+            self.P_KEY,
+            self.p
+        ) if current_node in self.sampling_strategy else self.p
+        return p
+
+    def _get_q(self, current_node):
+        q = self.sampling_strategy[current_node].get(
+            self.Q_KEY,
+            self.q
+        ) if current_node in self.sampling_strategy else self.q
+        return q
+
+    def _compute_prob(self, source, target, p, q, weight):
+        if target == source:
+            return weight / p
+        elif len(self.graph.es.select(_source=source, _target=target)) > 0:
+            return weight
+        return weight / q
 
     def _generate_walks(self):
         """
@@ -160,19 +179,19 @@ class Node2Vec:
         # Split num_walks for each worker
         num_walks_lists = np.array_split(range(self.num_walks), self.workers)
 
-        walk_results = Parallel(n_jobs=self.workers)(delayed(parallel_generate_walks)(self.d_graph,
-                                                                                      self.walk_length,
-                                                                                      len(num_walks),
-                                                                                      idx,
-                                                                                      self.sampling_strategy,
-                                                                                      self.NUM_WALKS_KEY,
-                                                                                      self.WALK_LENGTH_KEY,
-                                                                                      self.NEIGHBORS_KEY,
-                                                                                      self.PROBABILITIES_KEY,
-                                                                                      self.FIRST_TRAVEL_KEY,
-                                                                                      self.quiet) for
-                                                     idx, num_walks
-                                                     in enumerate(num_walks_lists, 1))
+        walk_results = Parallel(n_jobs=self.workers)(delayed(parallel_generate_walks)(
+            self.d_graph,
+            self.walk_length,
+            len(num_walks),
+            idx,
+            self.sampling_strategy,
+            self.NUM_WALKS_KEY,
+            self.WALK_LENGTH_KEY,
+            self.NEIGHBORS_KEY,
+            self.PROBS_KEY,
+            self.FIRST_TRAVEL_KEY,
+            self.quiet
+        ) for idx, num_walks in enumerate(num_walks_lists, 1))
 
         walks = flatten(walk_results)
 
@@ -192,7 +211,7 @@ class Node2Vec:
         if 'size' not in skip_gram_params:
             skip_gram_params['size'] = self.dimensions
 
-        return gensim.models.Word2Vec(self.walks, **skip_gram_params)
+        return Word2Vec(self.walks, **skip_gram_params)
 
 
 # class Node2VecWalker:
@@ -367,3 +386,7 @@ class Node2Vec:
 #         return kk
 #
 #     return j[kk]
+if __name__ == '__main__':
+    graph = read_ncol_graph('/home/omuslu/Documents/nrl/tests/resources/weighted_network.edgelist')
+    nrl_n2v = Node2Vec_temp(graph)
+    nrl_probs_dict = nrl_n2v._precompute_probabilities()
