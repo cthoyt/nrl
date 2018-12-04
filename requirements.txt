@@ -1,0 +1,4 @@
+dataclasses
+gensim
+numpy
+python-igraph
