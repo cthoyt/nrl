@@ -2,17 +2,17 @@
 
 """Algorithms for generating random walks for Node2vec."""
 
-import random
 from collections import defaultdict
-from typing import List, Mapping, Optional, Tuple
+from typing import Optional, Tuple
 
 import numpy as np
 from gensim.models import Word2Vec
-from igraph import Graph, Vertex
+from igraph import Graph
+from joblib import Parallel, delayed
 
-from nrl.io import read_ncol_graph
 from nrl.algorithm.random_walk import RandomWalkParameters
-from nrl.algorithm.word2vec import Word2VecParameters, get_word2vec_from_walks
+from nrl.algorithm.word2vec import Word2VecParameters
+from nrl.io import read_ncol_graph
 
 __all__ = [
     'run_node2vec',
@@ -40,6 +40,8 @@ def run_node2vec(graph: Graph,
 
 
 class Node2Vec_temp:
+    """Implementation of Node2Vec with igraph."""
+
     FIRST_TRAVEL_KEY = 'first_travel_key'
     PROBS_KEY = 'probabilities'
     NEIGHBORS_KEY = 'neighbors'
@@ -49,28 +51,30 @@ class Node2Vec_temp:
     P_KEY = 'p'
     Q_KEY = 'q'
 
-    def __init__(self, graph, dimensions=128, walk_length=80, num_walks=10, p=1, q=1,
-                 weight_key='weight',
-                 workers=1, sampling_strategy=None, quiet=False):
-        """
-        Initiates the Node2Vec object, precomputes walking probabilities and generates the walks.
+    def __init__(self,
+                 graph: Graph,
+                 dimensions: int = 128,
+                 walk_length: int = 80,
+                 num_walks: int = 10,
+                 p: float = 1.0,
+                 q: float = 1.0,
+                 weight_key: str = 'weight',
+                 workers: int = 1,
+                 sampling_strategy=None,
+                 quiet=False) -> None:
+        """Initiate the Node2Vec object, precompute walking probabilities, and generate the walks.
+
         :param graph: Input graph
-        :type graph: Networkx Graph
         :param dimensions: Embedding dimensions (default: 128)
-        :type dimensions: int
         :param walk_length: Number of nodes in each walk (default: 80)
-        :type walk_length: int
         :param num_walks: Number of walks per node (default: 10)
-        :type num_walks: int
         :param p: Return hyper parameter (default: 1)
-        :type p: float
         :param q: Inout parameter (default: 1)
-        :type q: float
         :param weight_key: On weighted graphs, this is the key for the weight attribute (default: 'weight')
-        :type weight_key: str
         :param workers: Number of workers for parallel execution (default: 1)
-        :type workers: int
-        :param sampling_strategy: Node specific sampling strategies, supports setting node specific 'q', 'p', 'num_walks' and 'walk_length'.
+        :param sampling_strategy: Node specific sampling strategies, supports setting node specific 'q', 'p',
+         'num_walks' and 'walk_length'.
+
         Use these keys exactly. If not set, will use the global ones which were passed on the object initialization
         """
         self.graph = graph
@@ -92,9 +96,7 @@ class Node2Vec_temp:
         self.walks = self._generate_walks()
 
     def _precompute_probabilities(self):
-        """
-        Precomputes transition probabilities for each node.
-        """
+        """Pre-compute transition probabilities for each node."""
         d_graph = defaultdict(dict)
         first_travel_done = set()
 
@@ -169,11 +171,10 @@ class Node2Vec_temp:
         return weight / q
 
     def _generate_walks(self):
-        """
-        Generates the random walks which will be used as the skip-gram input.
+        """Generate the random walks which will be used as the skip-gram input.
+
         :return: List of walks. Each walk is a list of nodes.
         """
-
         flatten = lambda l: [item for sublist in l for item in sublist]
 
         # Split num_walks for each worker
@@ -197,14 +198,13 @@ class Node2Vec_temp:
 
         return walks
 
-    def fit(self, **skip_gram_params):
-        """
-        Creates the embeddings using gensim's Word2Vec.
-        :param skip_gram_params: Parameteres for gensim.models.Word2Vec - do not supply 'size' it is taken from the Node2Vec 'dimensions' parameter
-        :type skip_gram_params: dict
+    def fit(self, **skip_gram_params) -> Word2Vec:
+        """Create the embeddings using gensim's Word2Vec.
+
+        :param skip_gram_params: Parameteres for gensim.models.Word2Vec - do not supply 'size' it is taken from the
+         Node2Vec 'dimensions' parameter
         :return: A gensim word2vec model
         """
-
         if 'workers' not in skip_gram_params:
             skip_gram_params['workers'] = self.workers
 
