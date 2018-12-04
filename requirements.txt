@@ -1,6 +1,0 @@
-dataclasses
-gensim
-numpy
-pandas
-python-igraph
-sklearn
