@@ -5,6 +5,4 @@
 import setuptools
 
 if __name__ == '__main__':
-    setuptools.setup(name='nrl')
-
-    # TODO: test_requires: node2vec, networkx
+    setuptools.setup()
