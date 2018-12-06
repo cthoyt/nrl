@@ -11,6 +11,7 @@ from igraph import Graph, Vertex
 
 __all__ = [
     'RandomWalkParameters',
+    'Walk',
     'AbstractRandomWalker',
 ]
 
@@ -48,6 +49,7 @@ class RandomWalkParameters:
     # Whether the graph is weighted or not
     is_weighted: Optional[bool] = True
 
+Walk = Iterable[Vertex]
 
 class AbstractRandomWalker(ABC):
     """An abstract class for random walkers."""
@@ -56,14 +58,14 @@ class AbstractRandomWalker(ABC):
         """Initialize the walker with the given random walk parameters dataclass."""
         self.parameters = parameters
 
-    def get_walks(self, graph: Graph) -> Iterable[Iterable[Vertex]]:
+    def get_walks(self, graph: Graph) -> Iterable[Walk]:
         """Get walks over this graph."""
         for _ in range(self.parameters.number_paths):
             vertices = list(graph.vs)
             random.shuffle(vertices)
-            for vertex in graph.vs:
+            for vertex in vertices:
                 yield self.get_walk(graph, vertex)
 
     @abstractmethod
-    def get_walk(self, graph: Graph, vertex: Vertex) -> Iterable[Vertex]:
+    def get_walk(self, graph: Graph, vertex: Vertex) -> Walk:
         """Generate one walk."""
