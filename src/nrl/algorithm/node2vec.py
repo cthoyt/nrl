@@ -19,7 +19,19 @@ WEIGHT = 'weight'
 
 
 class Node2VecModel:
-    """An implementation of Node2Vec using igraph."""
+    """An implementation of the Node2Vec [1]_ model.
+
+    .. [1] Grover, A., & Leskovec, J. (2016). Node2Vec: Scalable Feature Learning for Networks. In Proceedings of the
+           22Nd ACM SIGKDD International Conference on Knowledge Discovery and Data Mining (pp. 855–864). New York, NY,
+           USA: ACM. https://doi.org/10.1145/2939672.2939754
+
+    .. seealso:: Other Python implementations of Node2Vec:
+
+        - https://github.com/aditya-grover/node2vec (reference implementation)
+        - https://github.com/eliorc/node2vec (this is what you get with `pip install node2vec`)
+        - https://github.com/thunlp/OpenNE
+        - https://github.com/apple2373/node2vec
+    """
 
     FIRST_TRAVEL_KEY = 'first_travel_key'
     PROBS_KEY = 'probabilities'

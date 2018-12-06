@@ -40,7 +40,15 @@ def run_gat2vec_unsupervised(graph: Graph,
 
 
 class Gat2VecUnsupervisedModel(BaseModel):
-    """A model for running Gat2Vec."""
+    """An implementation of the GAT2VEC [1]_ model.
+
+    .. [1] Sheikh, N., Kefato, Z., & Montresor, A. (2018). Gat2Vec: Representation Learning for Attributed Graphs.
+           Computing, 1–23. https://doi.org/10.1007/s00607-018-0622-9
+
+    .. seealso:: Other Python implementations of GAT2VEC:
+
+        - https://github.com/snash4/GAT2VEC (reference implementation)
+    """
 
     def __init__(self,
                  graph: Graph,

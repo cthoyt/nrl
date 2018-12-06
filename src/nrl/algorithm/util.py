@@ -2,6 +2,7 @@
 
 """Utilities for NRL algorithms."""
 
+from abc import ABC, abstractmethod
 from typing import Optional
 
 from igraph import Graph
@@ -14,7 +15,7 @@ __all__ = [
 ]
 
 
-class BaseModel:
+class BaseModel(ABC):
     """A base model for running Word2Vec-based algorithms."""
 
     def __init__(self,
@@ -26,3 +27,7 @@ class BaseModel:
         self.graph = graph
         self.random_walk_parameters = random_walk_parameters
         self.word2vec_parameters = word2vec_parameters
+
+    @abstractmethod
+    def fit(self):
+        """Fit the model to the graph and parameters."""
