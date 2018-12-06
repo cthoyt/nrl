@@ -3,6 +3,8 @@
 """Algorithms for generating random walks from a given graph."""
 
 import random
+from abc import ABC, abstractmethod
+
 from dataclasses import dataclass, field
 from typing import Callable, Iterable, Optional, Dict
 
@@ -48,6 +50,21 @@ class RandomWalkParameters:
     # Whether the graph is weighted or not
     is_weighted: Optional[bool] = True
 
+
+class AbstractRandomWalker(ABC):
+    def __init__(self, parameters: RandomWalkParameters):
+        self.parameters = parameters
+
+    def get_walks(self, graph:Graph):
+        for _ in range(self.parameters.number_paths):
+            vertices = list(graph.vs)
+            random.shuffle(vertices)
+            for vertex in graph.vs:
+                yield self.get_walk(graph, vertex)
+
+    @abstractmethod
+    def get_walk(self, graph: Graph, vertex: Vertex) -> Iterable[Vertex]:
+        """Generate one walk."""
 
 def random_walks(graph: Graph,
                  random_walk_parameters: Optional[RandomWalkParameters] = None) -> Iterable[
