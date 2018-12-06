@@ -7,8 +7,8 @@ from typing import Optional
 from gensim.models import Word2Vec
 from igraph import Graph, VertexSeq
 
-from .random_walk import RandomWalkParameters, random_walks
 from .word2vec import Word2VecParameters, get_word2vec_from_walks
+from ..walker import RandomWalkParameters, StandardRandomWalker
 
 
 def run_gat2vec_unsupervised(graph: Graph,
@@ -25,10 +25,8 @@ def run_gat2vec_unsupervised(graph: Graph,
     # double the maximum path length, because GAT2VEC used this as the heuristic
     random_walk_parameters.max_path_length *= 2
 
-    walks = random_walks(
-        graph=graph,
-        random_walk_parameters=random_walk_parameters,
-    )
+    walker = StandardRandomWalker(random_walk_parameters)
+    walks = walker.get_walks(graph)
 
     # stringify output from igraph for Word2Vec
     # filter out vertices that aren't structural vertices

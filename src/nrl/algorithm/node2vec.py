@@ -2,21 +2,20 @@
 
 """Algorithms for generating random walks for Node2vec."""
 
-from collections import defaultdict
-from typing import Optional, Tuple
+from typing import Optional
 
 import numpy as np
 from gensim.models import Word2Vec
 from igraph import Graph
 
-from nrl.algorithm.random_walk import RandomWalkParameters, random_walks, random_walk_biased
-from nrl.algorithm.word2vec import Word2VecParameters, get_word2vec_from_walks
+from .word2vec import Word2VecParameters, get_word2vec_from_walks
+from ..walker import BiasedRandomWalker, RandomWalkParameters
 
 WEIGHT = 'weight'
 
 
 class Node2Vec:
-    """Implementation of Node2Vec with igraph."""
+    """An implementation of Node2Vec using igraph."""
 
     FIRST_TRAVEL_KEY = 'first_travel_key'
     PROBS_KEY = 'probabilities'
@@ -29,8 +28,8 @@ class Node2Vec:
     def __init__(self,
                  graph: Graph,
                  random_walk_parameters: Optional[RandomWalkParameters] = None,
-                 word2vec_parameters: Optional[Word2VecParameters] = None, ) -> None:
-        """Initiate the Node2Vec object, precompute walking probabilities, and generate the walks.
+                 word2vec_parameters: Optional[Word2VecParameters] = None) -> None:
+        """Precompute the walking probabilities and generate random walks.
 
         :param graph: Input graph
         :param dimensions: Embedding dimensions (default: 128)
@@ -54,7 +53,7 @@ class Node2Vec:
         self.weight_key = 'weight'
         self.workers = word2vec_parameters.workers
         self.random_walk_parameters = random_walk_parameters
-        self.random_walk_parameters.algorithm = random_walk_biased
+        self.walker = BiasedRandomWalker(self.random_walk_parameters)
 
         sampling_strategy = random_walk_parameters.sampling_strategy
         if sampling_strategy is not None:
@@ -144,10 +143,8 @@ class Node2Vec:
 
     def fit(self) -> Word2Vec:
         """Create the embeddings using gensim's Word2Vec."""
-        walks = random_walks(
-            graph=self.graph,
-            random_walk_parameters=self.random_walk_parameters,
-        )
+        walks = self.walker.get_walks(self.graph)
+
         # stringify output from igraph for Word2Vec
         walks = (
             map(str, walk)
