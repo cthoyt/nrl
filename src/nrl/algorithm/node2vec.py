@@ -2,19 +2,23 @@
 
 """Algorithms for generating random walks for Node2vec."""
 
-from typing import Optional
+from typing import Iterable, Optional
 
 import numpy as np
 from gensim.models import Word2Vec
-from igraph import Graph
+from igraph import Graph, Vertex
 
 from .word2vec import Word2VecParameters, get_word2vec_from_walks
 from ..walker import BiasedRandomWalker, RandomWalkParameters
 
+__all__ = [
+    'Node2VecModel',
+]
+
 WEIGHT = 'weight'
 
 
-class Node2Vec:
+class Node2VecModel:
     """An implementation of Node2Vec using igraph."""
 
     FIRST_TRAVEL_KEY = 'first_travel_key'
@@ -28,7 +32,8 @@ class Node2Vec:
     def __init__(self,
                  graph: Graph,
                  random_walk_parameters: Optional[RandomWalkParameters] = None,
-                 word2vec_parameters: Optional[Word2VecParameters] = None) -> None:
+                 word2vec_parameters: Optional[Word2VecParameters] = None
+                 ) -> None:
         """Precompute the walking probabilities and generate random walks.
 
         :param graph: Input graph
@@ -146,9 +151,10 @@ class Node2Vec:
         walks = self.walker.get_walks(self.graph)
 
         # stringify output from igraph for Word2Vec
-        walks = (
-            map(str, walk)
-            for walk in walks
-        )
+        walks = self._transform_walks(walks)
 
         return get_word2vec_from_walks(walks)
+
+    def _transform_walks(self, walks: Iterable[Iterable[Vertex]]) -> Iterable[Iterable[str]]:
+        for walk in walks:
+            yield map(str, walk)

@@ -8,7 +8,7 @@ import networkx as nx
 from gensim.models import Word2Vec
 from node2vec import Node2Vec
 
-from nrl.algorithm import Node2Vec as NRL_Node2Vec
+from nrl.algorithm import Node2VecModel
 from nrl.algorithm.word2vec import Word2VecParameters
 from nrl.walker import RandomWalkParameters
 from tests.constants import WEIGHTED_NETWORK_PATH, get_test_network
@@ -29,7 +29,7 @@ class TestNode2Vec(unittest.TestCase):
         )
         word2vec_parameters = Word2VecParameters()
 
-        nrl_n2v = NRL_Node2Vec(graph, random_walk_parameters, word2vec_parameters)
+        nrl_n2v = Node2VecModel(graph, random_walk_parameters, word2vec_parameters)
         word2vec = nrl_n2v.fit()
 
         self.assertIsInstance(word2vec, Word2Vec)
@@ -43,7 +43,7 @@ class TestNode2Vec(unittest.TestCase):
         )
         word2vec_parameters = Word2VecParameters()
 
-        nrl_n2v = NRL_Node2Vec(graph, random_walk_parameters, word2vec_parameters)
+        nrl_n2v = Node2VecModel(graph, random_walk_parameters, word2vec_parameters)
         word2vec = nrl_n2v.fit()
 
         self.assertIsInstance(word2vec, Word2Vec)
@@ -62,7 +62,7 @@ class TestNode2Vec(unittest.TestCase):
         )
         word2vec_parameters = Word2VecParameters()
 
-        n2 = NRL_Node2Vec(g2, random_walk_parameters, word2vec_parameters)
+        n2 = Node2VecModel(g2, random_walk_parameters, word2vec_parameters)
 
         for key in d1.keys():
             vertex1 = d1[key]
