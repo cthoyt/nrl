@@ -2,14 +2,15 @@
 
 """Algorithms for generating random walks for Node2vec."""
 
-from typing import Iterable, Optional
+from typing import Optional
 
 import numpy as np
 from gensim.models import Word2Vec
 from igraph import Graph
 
+from .util import BaseModel
 from .word2vec import Word2VecParameters, get_word2vec_from_walks
-from ..walker import BiasedRandomWalker, RandomWalkParameters, Walk
+from ..walker import BiasedRandomWalker, RandomWalkParameters
 
 __all__ = [
     'Node2VecModel',
@@ -18,7 +19,7 @@ __all__ = [
 WEIGHT = 'weight'
 
 
-class Node2VecModel:
+class Node2VecModel(BaseModel):
     """An implementation of the Node2Vec [1]_ model.
 
     .. [1] Grover, A., & Leskovec, J. (2016). Node2Vec: Scalable Feature Learning for Networks. In Proceedings of the
@@ -46,31 +47,20 @@ class Node2VecModel:
                  random_walk_parameters: Optional[RandomWalkParameters] = None,
                  word2vec_parameters: Optional[Word2VecParameters] = None
                  ) -> None:
-        """Precompute the walking probabilities and generate random walks.
+        """Initialize the Node2Vec model."""
+        super().__init__(
+            graph=graph,
+            random_walk_parameters=random_walk_parameters,
+            word2vec_parameters=word2vec_parameters
+        )
 
-        :param graph: Input graph
-        :param dimensions: Embedding dimensions (default: 128)
-        :param walk_length: Number of nodes in each walk (default: 80)
-        :param num_walks: Number of walks per node (default: 10)
-        :param p: Return hyper parameter (default: 1)
-        :param q: Inout parameter (default: 1)
-        :param weight_key: On weighted graphs, this is the key for the weight attribute (default: 'weight')
-        :param workers: Number of workers for parallel execution (default: 1)
-        :param sampling_strategy: Node specific sampling strategies, supports setting node specific 'q', 'p',
-         'num_walks' and 'walk_length'.
-
-        Use these keys exactly. If not set, will use the global ones which were passed on the object initialization
-        """
-        self.graph = graph
         self.dimensions = word2vec_parameters.size
         self.walk_length = random_walk_parameters.max_path_length
         self.num_walks = random_walk_parameters.number_paths
         self.p = random_walk_parameters.p
         self.q = random_walk_parameters.q
-        self.weight_key = 'weight'
+        self.weight_key = WEIGHT
         self.workers = word2vec_parameters.workers
-        self.random_walk_parameters = random_walk_parameters
-        self.walker = BiasedRandomWalker(self.random_walk_parameters)
 
         sampling_strategy = random_walk_parameters.sampling_strategy
         if sampling_strategy is not None:
@@ -78,7 +68,7 @@ class Node2VecModel:
 
         if not random_walk_parameters.is_weighted:
             for edge in self.graph.es:
-                edge['weight'] = 1
+                edge['weight'] = 1.0
 
         self._precompute_probs()
 
@@ -160,13 +150,10 @@ class Node2VecModel:
 
     def fit(self) -> Word2Vec:
         """Create the embeddings using gensim's Word2Vec."""
-        walks = self.walker.get_walks(self.graph)
+        walker = BiasedRandomWalker(self.random_walk_parameters)
+        walks = walker.get_walks(self.graph)
 
         # stringify output from igraph for Word2Vec
         walks = self._transform_walks(walks)
 
         return get_word2vec_from_walks(walks)
-
-    def _transform_walks(self, walks: Iterable[Walk]) -> Iterable[Iterable[str]]:
-        for walk in walks:
-            yield map(str, walk)

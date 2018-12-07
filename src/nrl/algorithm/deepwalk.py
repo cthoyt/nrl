@@ -2,14 +2,14 @@
 
 """An implementation of the DeepWalk algorithm."""
 
-from typing import Iterable, Optional
+from typing import Optional
 
 from gensim.models import Word2Vec
 from igraph import Graph
 
 from .util import BaseModel
 from .word2vec import Word2VecParameters, get_word2vec_from_walks
-from ..walker import RandomWalkParameters, StandardRandomWalker, Walk
+from ..walker import RandomWalkParameters, StandardRandomWalker
 
 __all__ = [
     'run_deepwalk',
@@ -56,7 +56,3 @@ class DeepWalkModel(BaseModel):
             walks=walks,
             word2vec_parameters=self.word2vec_parameters,
         )
-
-    def _transform_walks(self, walks: Iterable[Walk]) -> Iterable[Iterable[str]]:
-        for walk in walks:
-            yield map(str, walk)

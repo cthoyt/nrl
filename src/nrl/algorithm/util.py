@@ -3,12 +3,12 @@
 """Utilities for NRL algorithms."""
 
 from abc import ABC, abstractmethod
-from typing import Optional
+from typing import Iterable, Optional
 
 from igraph import Graph
 
 from .word2vec import Word2VecParameters
-from ..walker import RandomWalkParameters
+from ..walker import RandomWalkParameters, Walk
 
 __all__ = [
     'BaseModel',
@@ -31,3 +31,7 @@ class BaseModel(ABC):
     @abstractmethod
     def fit(self):
         """Fit the model to the graph and parameters."""
+
+    def _transform_walks(self, walks: Iterable[Walk]) -> Iterable[Iterable[str]]:
+        for walk in walks:
+            yield map(str, walk)
