@@ -49,7 +49,9 @@ class RandomWalkParameters:
     # Whether the graph is weighted or not
     is_weighted: Optional[bool] = True
 
+
 Walk = Iterable[Vertex]
+
 
 class AbstractRandomWalker(ABC):
     """An abstract class for random walkers."""

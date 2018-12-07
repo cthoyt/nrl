@@ -6,10 +6,10 @@ from typing import Iterable, Optional
 
 import numpy as np
 from gensim.models import Word2Vec
-from igraph import Graph, Vertex
+from igraph import Graph
 
 from .word2vec import Word2VecParameters, get_word2vec_from_walks
-from ..walker import BiasedRandomWalker, RandomWalkParameters
+from ..walker import BiasedRandomWalker, RandomWalkParameters, Walk
 
 __all__ = [
     'Node2VecModel',
@@ -167,6 +167,6 @@ class Node2VecModel:
 
         return get_word2vec_from_walks(walks)
 
-    def _transform_walks(self, walks: Iterable[Iterable[Vertex]]) -> Iterable[Iterable[str]]:
+    def _transform_walks(self, walks: Iterable[Walk]) -> Iterable[Iterable[str]]:
         for walk in walks:
             yield map(str, walk)

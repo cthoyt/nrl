@@ -3,12 +3,11 @@
 """Implementations of random walk algorithms."""
 
 import random
-from typing import Iterable
 
 import numpy as np
 from igraph import Graph, Vertex
 
-from .utils import AbstractRandomWalker
+from .utils import AbstractRandomWalker, Walk
 
 __all__ = [
     'StandardRandomWalker',
@@ -20,7 +19,7 @@ __all__ = [
 class StandardRandomWalker(AbstractRandomWalker):
     """Make standard random walks, choosing the neighbors at a given position uniformly."""
 
-    def get_walk(self, graph: Graph, vertex: Vertex) -> Iterable[Vertex]:
+    def get_walk(self, graph: Graph, vertex: Vertex) -> Walk:
         """Get a random walk by choosing from the neighbors at a given position uniformly."""
         tail = vertex
         yield tail
@@ -40,7 +39,7 @@ class RestartingRandomWalker(AbstractRandomWalker):
         """Get the probability with which this walker will restart from the original vertex."""
         return self.parameters.restart_probability
 
-    def get_walk(self, graph: Graph, vertex: Vertex) -> Iterable[Vertex]:
+    def get_walk(self, graph: Graph, vertex: Vertex) -> Walk:
         """Generate one random walk for one vertex, with the probability, alpha, of restarting."""
         tail = vertex
         yield tail
@@ -59,7 +58,7 @@ class RestartingRandomWalker(AbstractRandomWalker):
 class BiasedRandomWalker(AbstractRandomWalker):
     """A random walker that generates second-order random walks biased by edge weights."""
 
-    def get_walk(self, graph: Graph, vertex: Vertex) -> Iterable:
+    def get_walk(self, graph: Graph, vertex: Vertex) -> Walk:
         """Generate second-order random walks biased by edge weights."""
         num_walks_key = 'num_walks'
         walk_length_key = 'walk_length'

@@ -5,11 +5,11 @@
 from typing import Iterable, Optional
 
 from gensim.models import Word2Vec
-from igraph import Graph, Vertex
+from igraph import Graph
 
 from .util import BaseModel
 from .word2vec import Word2VecParameters, get_word2vec_from_walks
-from ..walker import RandomWalkParameters, StandardRandomWalker
+from ..walker import RandomWalkParameters, StandardRandomWalker, Walk
 
 __all__ = [
     'run_deepwalk',
@@ -57,6 +57,6 @@ class DeepWalkModel(BaseModel):
             word2vec_parameters=self.word2vec_parameters,
         )
 
-    def _transform_walks(self, walks: Iterable[Iterable[Vertex]]) -> Iterable[Iterable[str]]:
+    def _transform_walks(self, walks: Iterable[Walk]) -> Iterable[Iterable[str]]:
         for walk in walks:
             yield map(str, walk)
