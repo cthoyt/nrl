@@ -7,8 +7,8 @@ from typing import Optional
 from gensim.models import Word2Vec
 from igraph import Graph
 
-from .util import BaseModel
-from .word2vec import Word2VecParameters, get_word2vec_from_walks
+from .util import WalkerModel
+from .word2vec import Word2VecParameters
 from ..walker import RandomWalkParameters, StandardRandomWalker
 
 __all__ = [
@@ -21,7 +21,7 @@ def run_deepwalk(graph: Graph,
                  random_walk_parameters: Optional[RandomWalkParameters] = None,
                  word2vec_parameters: Optional[Word2VecParameters] = None
                  ) -> Word2Vec:
-    """Build a Word2Vec model using random walks on the graph."""
+    """Run the DeepWalk algorithm to generate a Word2Vec model."""
     model = DeepWalkModel(
         graph=graph,
         random_walk_parameters=random_walk_parameters,
@@ -30,7 +30,7 @@ def run_deepwalk(graph: Graph,
     return model.fit()
 
 
-class DeepWalkModel(BaseModel):
+class DeepWalkModel(WalkerModel):
     """An implementation of the DeepWalk [1]_ model.
 
     .. [1] Perozzi, B., Al-Rfou, R., & Skiena, S. (2014). DeepWalk: Online Learning of Social Representations.
@@ -44,15 +44,4 @@ class DeepWalkModel(BaseModel):
         - https://github.com/jwplayer/jwalk
     """
 
-    def fit(self):
-        """Fit the DeepWalk model to the graph and parameters."""
-        walker = StandardRandomWalker(self.random_walk_parameters)
-        walks = walker.get_walks(self.graph)
-
-        # stringify output from igraph for Word2Vec
-        walks = self._transform_walks(walks)
-
-        return get_word2vec_from_walks(
-            walks=walks,
-            word2vec_parameters=self.word2vec_parameters,
-        )
+    random_walker_cls = StandardRandomWalker

@@ -2,24 +2,19 @@
 
 """Algorithms for generating random walks for Node2vec."""
 
-from typing import Optional
-
 import numpy as np
-from gensim.models import Word2Vec
-from igraph import Graph
 
-from .util import BaseModel
-from .word2vec import Word2VecParameters, get_word2vec_from_walks
-from ..walker import BiasedRandomWalker, RandomWalkParameters
+from .util import WalkerModel
+from ..walker import BiasedRandomWalker
 
 __all__ = [
     'Node2VecModel',
 ]
 
-WEIGHT = 'weight'
 
+# TODO make pre-processing the graph a separate function / class
 
-class Node2VecModel(BaseModel):
+class Node2VecModel(WalkerModel):
     """An implementation of the Node2Vec [1]_ model.
 
     .. [1] Grover, A., & Leskovec, J. (2016). Node2Vec: Scalable Feature Learning for Networks. In Proceedings of the
@@ -34,40 +29,24 @@ class Node2VecModel(BaseModel):
         - https://github.com/apple2373/node2vec
     """
 
-    FIRST_TRAVEL_KEY = 'first_travel_key'
-    PROBS_KEY = 'probabilities'
-    WEIGHT_KEY = 'weight'
+    random_walker_cls = BiasedRandomWalker
+
     NUM_WALKS_KEY = 'num_walks'
     WALK_LENGTH_KEY = 'walk_length'
+    PROBS_KEY = 'probabilities'
+    FIRST_TRAVEL_KEY = 'first_travel_key'
+
+    WEIGHT_KEY = 'weight'
+
     P_KEY = 'p'
     Q_KEY = 'q'
 
-    def __init__(self,
-                 graph: Graph,
-                 random_walk_parameters: Optional[RandomWalkParameters] = None,
-                 word2vec_parameters: Optional[Word2VecParameters] = None
-                 ) -> None:
-        """Initialize the Node2Vec model."""
-        super().__init__(
-            graph=graph,
-            random_walk_parameters=random_walk_parameters,
-            word2vec_parameters=word2vec_parameters
-        )
-
-        self.weight_key = WEIGHT
-
-        sampling_strategy = random_walk_parameters.sampling_strategy
-        if sampling_strategy is not None:
-            self.sampling_strategy = sampling_strategy
-
-        if not random_walk_parameters.is_weighted:
+    def initialize(self):
+        """Pre-process the model by computing transition probabilities for each node in the graph."""
+        if not self.random_walk_parameters.is_weighted:
             for edge in self.graph.es:
                 edge['weight'] = 1.0
 
-        self._precompute_probs()
-
-    def _precompute_probs(self):
-        """Pre-compute transition probabilities for each node."""
         first_travel_done = set()
 
         for node in self.graph.vs:
@@ -109,7 +88,7 @@ class Node2VecModel(BaseModel):
             q = self._get_q(current_node['name'])
 
             edge = self.graph.es.select(_between=([current_node.index], [target.index]))
-            edge_weight = edge[self.weight_key][0]
+            edge_weight = edge[self.WEIGHT_KEY][0]
 
             # Assign the unnormalized sampling strategy weight, normalize during random walk
             unnormalized_weights.append(
@@ -122,17 +101,17 @@ class Node2VecModel(BaseModel):
         return unnormalized_weights, first_travel_weights
 
     def _get_p(self, current_node):
-        p = self.sampling_strategy[current_node].get(
+        p = self.random_walk_parameters.sampling_strategy[current_node].get(
             self.P_KEY,
             self.random_walk_parameters.p
-        ) if current_node in self.sampling_strategy else self.random_walk_parameters.p
+        ) if current_node in self.random_walk_parameters.sampling_strategy else self.random_walk_parameters.p
         return p
 
     def _get_q(self, current_node):
-        q = self.sampling_strategy[current_node].get(
+        q = self.random_walk_parameters.sampling_strategy[current_node].get(
             self.Q_KEY,
             self.random_walk_parameters.q
-        ) if current_node in self.sampling_strategy else self.random_walk_parameters.q
+        ) if current_node in self.random_walk_parameters.sampling_strategy else self.random_walk_parameters.q
         return q
 
     def _compute_prob(self, source, target, p, q, weight):
@@ -141,13 +120,3 @@ class Node2VecModel(BaseModel):
         elif len(self.graph.es.select(_source=source, _target=target)) > 0:
             return weight
         return weight / q
-
-    def fit(self) -> Word2Vec:
-        """Create the embeddings using gensim's Word2Vec."""
-        walker = BiasedRandomWalker(self.random_walk_parameters)
-        walks = walker.get_walks(self.graph)
-
-        # stringify output from igraph for Word2Vec
-        walks = self._transform_walks(walks)
-
-        return get_word2vec_from_walks(walks)
