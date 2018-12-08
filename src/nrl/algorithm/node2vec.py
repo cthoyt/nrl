@@ -54,13 +54,7 @@ class Node2VecModel(BaseModel):
             word2vec_parameters=word2vec_parameters
         )
 
-        self.dimensions = word2vec_parameters.size
-        self.walk_length = random_walk_parameters.max_path_length
-        self.num_walks = random_walk_parameters.number_paths
-        self.p = random_walk_parameters.p
-        self.q = random_walk_parameters.q
         self.weight_key = WEIGHT
-        self.workers = word2vec_parameters.workers
 
         sampling_strategy = random_walk_parameters.sampling_strategy
         if sampling_strategy is not None:
@@ -130,15 +124,15 @@ class Node2VecModel(BaseModel):
     def _get_p(self, current_node):
         p = self.sampling_strategy[current_node].get(
             self.P_KEY,
-            self.p
-        ) if current_node in self.sampling_strategy else self.p
+            self.random_walk_parameters.p
+        ) if current_node in self.sampling_strategy else self.random_walk_parameters.p
         return p
 
     def _get_q(self, current_node):
         q = self.sampling_strategy[current_node].get(
             self.Q_KEY,
-            self.q
-        ) if current_node in self.sampling_strategy else self.q
+            self.random_walk_parameters.q
+        ) if current_node in self.sampling_strategy else self.random_walk_parameters.q
         return q
 
     def _compute_prob(self, source, target, p, q, weight):
