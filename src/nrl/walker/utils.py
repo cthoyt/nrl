@@ -9,9 +9,10 @@ from typing import Dict, Iterable, Optional
 
 from igraph import Graph, Vertex
 
+from ..typing import Walk
+
 __all__ = [
     'RandomWalkParameters',
-    'Walk',
     'AbstractRandomWalker',
 ]
 
@@ -48,9 +49,6 @@ class RandomWalkParameters:
 
     # Whether the graph is weighted or not
     is_weighted: Optional[bool] = True
-
-
-Walk = Iterable[Vertex]
 
 
 class AbstractRandomWalker(ABC):

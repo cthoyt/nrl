@@ -9,7 +9,8 @@ from gensim.models import Word2Vec
 from igraph import Graph
 
 from .word2vec import Word2VecParameters, get_word2vec_from_walks
-from ..walker import AbstractRandomWalker, RandomWalkParameters, Walk
+from ..typing import Walk
+from ..walker import AbstractRandomWalker, RandomWalkParameters
 
 __all__ = [
     'BaseModel',
@@ -37,7 +38,7 @@ class BaseModel(ABC):
         """Fit the model to the graph and parameters."""
 
     def initialize(self) -> None:
-        """A hook for pre-processing in the model."""
+        """Pre-processing the graph, model, and its parameters."""
 
 
 class WalkerModel(BaseModel):

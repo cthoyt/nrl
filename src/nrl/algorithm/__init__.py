@@ -2,6 +2,14 @@
 
 """Algorithms for NRL."""
 
-from .deepwalk import run_deepwalk  # noqa: F401
-from .gat2vec import run_gat2vec_unsupervised  # noqa: F401
-from .node2vec import Node2VecModel  # noqa: F401
+from .deepwalk import DeepWalkModel
+from .gat2vec import Gat2VecUnsupervisedModel
+from .node2vec import Node2VecModel
+from .util import WalkerModel
+
+__all__ = [
+    'WalkerModel',
+    'DeepWalkModel',
+    'Gat2VecUnsupervisedModel',
+    'Node2VecModel'
+]

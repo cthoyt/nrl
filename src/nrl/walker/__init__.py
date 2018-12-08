@@ -2,5 +2,13 @@
 
 """Algorithms for generating random walks."""
 
-from .utils import *  # noqa
-from .walkers import *  # noqa
+from .utils import AbstractRandomWalker, RandomWalkParameters
+from .walkers import BiasedRandomWalker, RestartingRandomWalker, StandardRandomWalker
+
+__all__ = [
+    'AbstractRandomWalker',
+    'RandomWalkParameters',
+    'BiasedRandomWalker',
+    'RestartingRandomWalker',
+    'StandardRandomWalker',
+]

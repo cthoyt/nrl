@@ -7,7 +7,8 @@ import random
 import numpy as np
 from igraph import Graph, Vertex
 
-from .utils import AbstractRandomWalker, Walk
+from .utils import AbstractRandomWalker
+from ..typing import Walk
 
 __all__ = [
     'StandardRandomWalker',

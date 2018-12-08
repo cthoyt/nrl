@@ -15,11 +15,11 @@ __all__ = [
 # TODO make pre-processing the graph a separate function / class
 
 class Node2VecModel(WalkerModel):
-    """An implementation of the Node2Vec [1]_ model.
+    """An implementation of the Node2Vec [grover2016]_ model.
 
-    .. [1] Grover, A., & Leskovec, J. (2016). Node2Vec: Scalable Feature Learning for Networks. In Proceedings of the
-           22Nd ACM SIGKDD International Conference on Knowledge Discovery and Data Mining (pp. 855–864). New York, NY,
-           USA: ACM. https://doi.org/10.1145/2939672.2939754
+    .. [grover2016] Grover, A., & Leskovec, J. (2016). Node2Vec: Scalable Feature Learning for Networks. In Proceedings
+                    of the 22Nd ACM SIGKDD International Conference on Knowledge Discovery and Data Mining
+                    (pp. 855–864). New York, NY, USA: ACM. https://doi.org/10.1145/2939672.2939754
 
     .. seealso:: Other Python implementations of Node2Vec:
 

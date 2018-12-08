@@ -31,10 +31,10 @@ def run_deepwalk(graph: Graph,
 
 
 class DeepWalkModel(WalkerModel):
-    """An implementation of the DeepWalk [1]_ model.
+    """An implementation of the DeepWalk [perozzi2014]_ model.
 
-    .. [1] Perozzi, B., Al-Rfou, R., & Skiena, S. (2014). DeepWalk: Online Learning of Social Representations.
-           https://doi.org/10.1145/2623330.2623732
+    .. [perozzi2014] Perozzi, B., Al-Rfou, R., & Skiena, S. (2014). DeepWalk: Online Learning of Social Representations.
+                     https://doi.org/10.1145/2623330.2623732
 
     .. seealso:: Other Python implementations of DeepWalk:
 
