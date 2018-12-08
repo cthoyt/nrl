@@ -34,7 +34,7 @@ def run_gat2vec_unsupervised(graph: Graph,
 
 
 class Gat2VecUnsupervisedModel(WalkerModel):
-    """An implementation of the GAT2VEC [sheikh2018]_ unsupervised model.
+    """An implementation of the GAT2VEC unsupervised model [sheikh2018]_ .
 
     .. [sheikh2018] Sheikh, N., Kefato, Z., & Montresor, A. (2018). Gat2Vec: Representation Learning for Attributed
                     Graphs. Computing, 1–23. https://doi.org/10.1007/s00607-018-0622-9
