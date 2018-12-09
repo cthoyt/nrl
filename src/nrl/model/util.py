@@ -28,8 +28,8 @@ class BaseModel(ABC):
                  ) -> None:
         """Store the graph, parameters, then initialize the model."""
         self.graph = graph
-        self.random_walk_parameters = random_walk_parameters
-        self.word2vec_parameters = word2vec_parameters
+        self.random_walk_parameters = random_walk_parameters or RandomWalkParameters()
+        self.word2vec_parameters = word2vec_parameters or Word2VecParameters()
 
         self.initialize()
 

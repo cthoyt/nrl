@@ -49,7 +49,7 @@ class RestartingRandomWalker(AbstractRandomWalker):
         while path_length < self.parameters.max_path_length and graph.neighborhood_size(tail):
             tail = (
                 vertex
-                if self.restart_probability <= random.choice() else
+                if self.restart_probability <= random.random() else
                 random.choice(tail.neighbors())
             )
             yield tail

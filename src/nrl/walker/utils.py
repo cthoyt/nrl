@@ -29,15 +29,15 @@ class RandomWalkParameters:
 
     # TODO use this in get_random_walks
     #: Probability of restarting the path. If None, doesn't consider.
-    restart_probability: Optional[float] = 0.0
+    restart_probability: float = 0.0
 
     """Node2vec parameters"""
 
     #: p
-    p: Optional[float] = 1.0
+    p: float = 1.0
 
     #: q
-    q: Optional[float] = 1.0
+    q: float = 1.0
 
     # the strategy for sampling the walks
     # TODO: type
@@ -45,10 +45,10 @@ class RandomWalkParameters:
     sampling_strategy: Optional[Dict] = field(default_factory=dict)
 
     #: Whether the graph is directed or not
-    is_directed: Optional[bool] = False
+    is_directed: bool = False
 
     # Whether the graph is weighted or not
-    is_weighted: Optional[bool] = True
+    is_weighted: bool = True
 
 
 class AbstractRandomWalker(ABC):

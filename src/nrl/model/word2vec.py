@@ -13,7 +13,6 @@ from sklearn.metrics.pairwise import cosine_similarity
 __all__ = [
     'Word2VecParameters',
     'save_word2vec',
-    'get_cosine_similarity_df',
     'get_cosine_similarity',
     'get_word2vec_from_walks',
 ]
@@ -47,12 +46,12 @@ def save_word2vec(word2vec: Word2Vec, name: str):
     word2vec.wv.save_word2vec_format(fname=name)
 
 
-def get_cosine_similarity_df(word2vec: Word2Vec) -> pd.DataFrame:
-    """Get the cosine similarity matrix from the embedding as a Pandas DataFrame."""
-    node_labels = ...
-    labels = [node_labels[n] for n in word2vec.wv.index2word]
-    sim = get_cosine_similarity(word2vec)
-    return pd.DataFrame(sim, index=labels, columns=labels)
+# def get_cosine_similarity_df(word2vec: Word2Vec) -> pd.DataFrame:
+#     """Get the cosine similarity matrix from the embedding as a Pandas DataFrame."""
+#     node_labels = ...
+#     labels = [node_labels[n] for n in word2vec.wv.index2word]
+#     sim = get_cosine_similarity(word2vec)
+#     return pd.DataFrame(sim, index=labels, columns=labels)
 
 
 def get_cosine_similarity(word2vec: Word2Vec) -> np.ndarray:
