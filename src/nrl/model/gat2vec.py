@@ -65,7 +65,8 @@ class Gat2VecUnsupervisedModel(WalkerModel):
         # Store structural vertices - other ones will be filtered out
         self.structural_vertices = structural_vertices
 
-    def _transform_walks(self, walks: Iterable[Walk]) -> Iterable[Walk]:
+    def transform_walks(self, walks: Iterable[Walk]) -> Iterable[Walk]:
+        """Remove vertices that aren't labeled as structural vertices from all walks."""
         for walk in walks:
             yield (
                 vertex

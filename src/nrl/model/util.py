@@ -54,7 +54,7 @@ class WalkerModel(BaseModel):
         # stringify output from igraph for Word2Vec
         walks = (
             map(str, walk)
-            for walk in self._transform_walks(walks)
+            for walk in self.transform_walks(walks)
         )
 
         return get_word2vec_from_walks(
@@ -62,5 +62,6 @@ class WalkerModel(BaseModel):
             word2vec_parameters=self.word2vec_parameters,
         )
 
-    def _transform_walks(self, walks: Iterable[Walk]) -> Iterable[Walk]:
+    def transform_walks(self, walks: Iterable[Walk]) -> Iterable[Walk]:
+        """Transform walks (by default, simply returns the walks)."""
         return walks

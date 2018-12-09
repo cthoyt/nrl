@@ -5,8 +5,7 @@ Welcome to NRL's documentation!
    :caption: Contents:
 
    walker
-   algorithm
-
+   model
 
 Indices and tables
 ==================
