@@ -59,23 +59,24 @@ class RestartingRandomWalker(AbstractRandomWalker):
 class BiasedRandomWalker(AbstractRandomWalker):
     """A random walker that generates second-order random walks biased by edge weights."""
 
+    NUM_WALKS_KEY = 'num_walks'
+    WALK_LENGTH_KEY = 'walk_length'
+    PROBABILITIES_KEY = 'probabilities'
+    FIRST_TRAVEL_KEY = 'first_travel_key'
+
+    @property
+    def sampling_strategy(self):
+        """Get the sampling strategy for this walker."""
+        return self.parameters.sampling_strategy
+
     def get_walk(self, graph: Graph, vertex: Vertex) -> Walk:
         """Generate second-order random walks biased by edge weights."""
-        num_walks_key = 'num_walks'
-        walk_length_key = 'walk_length'
-        probabilities_key = 'probabilities'
-        first_travel_key = 'first_travel_key'
-
-        global_walk_length = self.parameters.max_path_length
-        num_walks = self.parameters.number_paths
-        sampling_strategy = self.parameters.sampling_strategy
-
         if self.parameters.max_path_length < 2:
             raise ValueError("The path length for random walk is less than 2, which doesn't make sense")
 
-        if vertex in sampling_strategy \
-                and num_walks_key in sampling_strategy[vertex] \
-                and sampling_strategy[vertex][num_walks_key] <= num_walks:
+        if (vertex in self.sampling_strategy and
+                self.NUM_WALKS_KEY in self.sampling_strategy[vertex] and
+                self.sampling_strategy[vertex][self.NUM_WALKS_KEY] <= self.parameters.number_paths):
             return
 
         # Start walk
@@ -83,12 +84,12 @@ class BiasedRandomWalker(AbstractRandomWalker):
         double_tail = vertex
 
         # Calculate walk length
-        if vertex in sampling_strategy:
-            walk_length = sampling_strategy[vertex].get(walk_length_key, global_walk_length)
+        if vertex in self.sampling_strategy:
+            walk_length = self.sampling_strategy[vertex].get(self.WALK_LENGTH_KEY, self.parameters.max_path_length)
         else:
-            walk_length = global_walk_length
+            walk_length = self.parameters.max_path_length
 
-        probabilities = vertex[first_travel_key]
+        probabilities = vertex[self.FIRST_TRAVEL_KEY]
         tail = np.random.choice(vertex.neighbors(), p=probabilities)
         if not tail:
             return
@@ -103,7 +104,7 @@ class BiasedRandomWalker(AbstractRandomWalker):
             if not neighbors:
                 break
 
-            probabilities = tail[probabilities_key][double_tail['name']]
+            probabilities = tail[self.PROBABILITIES_KEY][double_tail['name']]
             double_tail, tail = tail, np.random.choice(neighbors, p=probabilities)
 
             yield tail
