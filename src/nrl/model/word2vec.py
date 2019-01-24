@@ -6,7 +6,6 @@ from dataclasses import dataclass
 from typing import Iterable, Optional
 
 import numpy as np
-import pandas as pd
 from gensim.models import Word2Vec
 from sklearn.metrics.pairwise import cosine_similarity
 
