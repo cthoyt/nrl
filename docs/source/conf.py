@@ -26,7 +26,7 @@ project = 'NRL'
 copyright = '2018, Charles Tapley Hoyt and Özlem Muslu'
 author = 'Charles Tapley Hoyt and Özlem Muslu'
 
-release = '0.0.1-dev'
+release = '0.0.1'
 
 # The short X.Y version.
 parsed_version = re.match(
