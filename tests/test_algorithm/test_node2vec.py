@@ -8,8 +8,8 @@ import networkx as nx
 from gensim.models import Word2Vec
 from node2vec import Node2Vec
 
-from nrl.algorithm import Node2VecModel
-from nrl.algorithm.word2vec import Word2VecParameters
+from nrl.model import Node2VecModel
+from nrl.model.word2vec import Word2VecParameters
 from nrl.walker import RandomWalkParameters
 from tests.constants import WEIGHTED_NETWORK_PATH, get_test_network
 

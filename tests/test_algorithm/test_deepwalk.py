@@ -6,8 +6,8 @@ import unittest
 
 from gensim.models import Word2Vec
 
-from nrl.algorithm.deepwalk import run_deepwalk
-from nrl.algorithm.word2vec import Word2VecParameters
+from nrl.model.deepwalk import run_deepwalk
+from nrl.model.word2vec import Word2VecParameters
 from nrl.walker import RandomWalkParameters
 from tests.constants import get_test_network
 
