@@ -10,7 +10,7 @@ from node2vec import Node2Vec
 
 from nrl.model import Node2VecModel
 from nrl.model.word2vec import Word2VecParameters
-from nrl.walker import RandomWalkParameters
+from nrl.walker import WalkerParameters
 from tests.constants import WEIGHTED_NETWORK_PATH, get_test_network
 
 
@@ -22,7 +22,7 @@ class TestNode2Vec(unittest.TestCase):
     def test_node2vec_unweighted(self):
         """Test Node2Vec."""
         graph = get_test_network()
-        random_walk_parameters = RandomWalkParameters(
+        random_walk_parameters = WalkerParameters(
             number_paths=5,
             max_path_length=10,
             is_weighted=False
@@ -37,7 +37,7 @@ class TestNode2Vec(unittest.TestCase):
     def test_node2vec_weighted(self):
         """Test Node2Vec."""
         graph = get_test_network(path=WEIGHTED_NETWORK_PATH)
-        random_walk_parameters = RandomWalkParameters(
+        random_walk_parameters = WalkerParameters(
             number_paths=5,
             max_path_length=10,
         )
@@ -56,7 +56,7 @@ class TestNode2Vec(unittest.TestCase):
         d1 = n1._precompute_probabilities()
 
         g2 = get_test_network(WEIGHTED_NETWORK_PATH)
-        random_walk_parameters = RandomWalkParameters(
+        random_walk_parameters = WalkerParameters(
             number_paths=5,
             max_path_length=10,
         )

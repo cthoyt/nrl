@@ -10,7 +10,7 @@ from igraph import Graph, VertexSeq
 from .util import WalkerModel
 from .word2vec import Word2VecParameters
 from ..typing import Walk
-from ..walker import RandomWalkParameters, StandardRandomWalker
+from ..walker import WalkerParameters, StandardRandomWalker
 
 __all__ = [
     'run_gat2vec_unsupervised',
@@ -18,19 +18,19 @@ __all__ = [
 ]
 
 
-def run_gat2vec_unsupervised(graph: Graph,
-                             structural_vertices: VertexSeq,
-                             random_walk_parameters: Optional[RandomWalkParameters] = None,
-                             word2vec_parameters: Optional[Word2VecParameters] = None
-                             ) -> Word2Vec:
+def run_gat2vec_unsupervised(
+        graph: Graph,
+        structural_vertices: VertexSeq,
+        random_walk_parameters: Optional[WalkerParameters] = None,
+        word2vec_parameters: Optional[Word2VecParameters] = None
+) -> Word2Vec:
     """Run the unsupervised GAT2VEC algorithm to generate a Word2Vec model."""
     model = Gat2VecUnsupervisedModel(
-        graph=graph,
         structural_vertices=structural_vertices,
         random_walk_parameters=random_walk_parameters,
         word2vec_parameters=word2vec_parameters,
     )
-    return model.fit()
+    return model.fit(graph)
 
 
 class Gat2VecUnsupervisedModel(WalkerModel):
@@ -44,18 +44,17 @@ class Gat2VecUnsupervisedModel(WalkerModel):
         - https://github.com/snash4/GAT2VEC (reference implementation)
     """
 
-    random_walker_cls = StandardRandomWalker
+    walker_cls = StandardRandomWalker
 
-    def __init__(self,
-                 graph: Graph,
-                 structural_vertices: VertexSeq,
-                 random_walk_parameters: Optional[RandomWalkParameters] = None,
-                 word2vec_parameters: Optional[Word2VecParameters] = None
-                 ) -> None:
+    def __init__(
+            self,
+            structural_vertices: VertexSeq,
+            random_walk_parameters: Optional[WalkerParameters] = None,
+            word2vec_parameters: Optional[Word2VecParameters] = None
+    ) -> None:
         """Initialize the GAT2VEC unsupervised model."""
         super().__init__(
-            graph=graph,
-            random_walk_parameters=random_walk_parameters,
+            walker_parameters=random_walk_parameters,
             word2vec_parameters=word2vec_parameters,
         )
 

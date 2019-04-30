@@ -9,7 +9,7 @@ from igraph import Graph
 
 from .util import WalkerModel
 from .word2vec import Word2VecParameters
-from ..walker import RandomWalkParameters, StandardRandomWalker
+from ..walker import StandardRandomWalker, WalkerParameters
 
 __all__ = [
     'run_deepwalk',
@@ -17,17 +17,17 @@ __all__ = [
 ]
 
 
-def run_deepwalk(graph: Graph,
-                 random_walk_parameters: Optional[RandomWalkParameters] = None,
-                 word2vec_parameters: Optional[Word2VecParameters] = None
-                 ) -> Word2Vec:
+def run_deepwalk(
+        graph: Graph,
+        walker_parameters: Optional[WalkerParameters] = None,
+        word2vec_parameters: Optional[Word2VecParameters] = None
+) -> Word2Vec:
     """Run the DeepWalk algorithm to generate a Word2Vec model."""
     model = DeepWalkModel(
-        graph=graph,
-        random_walk_parameters=random_walk_parameters,
+        walker_parameters=walker_parameters,
         word2vec_parameters=word2vec_parameters,
     )
-    return model.fit()
+    return model.fit(graph)
 
 
 class DeepWalkModel(WalkerModel):
@@ -44,4 +44,4 @@ class DeepWalkModel(WalkerModel):
         - https://github.com/jwplayer/jwalk
     """
 
-    random_walker_cls = StandardRandomWalker
+    walker_cls = StandardRandomWalker

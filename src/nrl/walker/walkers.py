@@ -7,7 +7,7 @@ import random
 import numpy as np
 from igraph import Graph, Vertex
 
-from .utils import AbstractRandomWalker
+from .utils import Walker
 from ..typing import Walk
 
 __all__ = [
@@ -17,7 +17,7 @@ __all__ = [
 ]
 
 
-class StandardRandomWalker(AbstractRandomWalker):
+class StandardRandomWalker(Walker):
     """Make standard random walks, choosing the neighbors at a given position uniformly."""
 
     def get_walk(self, graph: Graph, vertex: Vertex) -> Walk:
@@ -32,7 +32,7 @@ class StandardRandomWalker(AbstractRandomWalker):
             path_length += 1
 
 
-class RestartingRandomWalker(AbstractRandomWalker):
+class RestartingRandomWalker(Walker):
     """A random walker that restarts from the original vertex with a given probability."""
 
     @property
@@ -56,7 +56,7 @@ class RestartingRandomWalker(AbstractRandomWalker):
             path_length += 1
 
 
-class BiasedRandomWalker(AbstractRandomWalker):
+class BiasedRandomWalker(Walker):
     """A random walker that generates second-order random walks biased by edge weights."""
 
     NUM_WALKS_KEY = 'num_walks'

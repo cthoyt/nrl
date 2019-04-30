@@ -29,7 +29,7 @@ class Node2VecModel(WalkerModel):
         - https://github.com/apple2373/node2vec
     """
 
-    random_walker_cls = BiasedRandomWalker
+    walker_cls = BiasedRandomWalker
 
     NUM_WALKS_KEY = 'num_walks'
     WALK_LENGTH_KEY = 'walk_length'
@@ -41,7 +41,7 @@ class Node2VecModel(WalkerModel):
     P_KEY = 'p'
     Q_KEY = 'q'
 
-    def initialize(self):
+    def initialize(self, graph):
         """Pre-process the model by computing transition probabilities for each node in the graph."""
         if not self.random_walk_parameters.is_weighted:
             for edge in self.graph.es:

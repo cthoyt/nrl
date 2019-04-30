@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from typing import Iterable, Optional
 
 import numpy as np
+import pandas as pd
 from gensim.models import Word2Vec
 from sklearn.metrics.pairwise import cosine_similarity
 
@@ -45,12 +46,10 @@ def save_word2vec(word2vec: Word2Vec, name: str):
     word2vec.wv.save_word2vec_format(fname=name)
 
 
-# def get_cosine_similarity_df(word2vec: Word2Vec) -> pd.DataFrame:
-#     """Get the cosine similarity matrix from the embedding as a Pandas DataFrame."""
-#     node_labels = ...
-#     labels = [node_labels[n] for n in word2vec.wv.index2word]
-#     sim = get_cosine_similarity(word2vec)
-#     return pd.DataFrame(sim, index=labels, columns=labels)
+def get_cosine_similarity_df(word2vec: Word2Vec) -> pd.DataFrame:
+    """Get the cosine similarity matrix from the embedding as a Pandas DataFrame."""
+    sim = get_cosine_similarity(word2vec)
+    return pd.DataFrame(sim, index=word2vec.wv.index2word, columns=word2vec.wv.index2word)
 
 
 def get_cosine_similarity(word2vec: Word2Vec) -> np.ndarray:
@@ -58,17 +57,18 @@ def get_cosine_similarity(word2vec: Word2Vec) -> np.ndarray:
 
     Warning; might be very big!
     """
-    return 1 - cosine_similarity(word2vec.wv.vectors)
+    return cosine_similarity(word2vec.wv.vectors)
 
 
-def get_word2vec_from_walks(walks: Iterable[Iterable[str]],
-                            word2vec_parameters: Optional[Word2VecParameters] = None
-                            ) -> Word2Vec:
+def get_word2vec_from_walks(
+        walks: Iterable[Iterable[str]],
+        word2vec_parameters: Optional[Word2VecParameters] = None
+) -> Word2Vec:
     """Train Word2Vec with the given walks."""
     if word2vec_parameters is None:
         word2vec_parameters = Word2VecParameters()
 
-    # TODO hack this up to be an itertor so Word2Vec doesn't complain
+    # TODO hack this up to be an iterator so Word2Vec doesn't complain
     walks = [list(x) for x in walks]
 
     return Word2Vec(

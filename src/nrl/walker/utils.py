@@ -12,13 +12,13 @@ from igraph import Graph, Vertex
 from ..typing import Walk
 
 __all__ = [
-    'RandomWalkParameters',
-    'AbstractRandomWalker',
+    'WalkerParameters',
+    'Walker',
 ]
 
 
 @dataclass
-class RandomWalkParameters:
+class WalkerParameters:
     """Parameters for random walks."""
 
     #: The number of paths to get
@@ -51,10 +51,10 @@ class RandomWalkParameters:
     is_weighted: bool = True
 
 
-class AbstractRandomWalker(ABC):
+class Walker(ABC):
     """An abstract class for random walkers."""
 
-    def __init__(self, parameters: RandomWalkParameters):
+    def __init__(self, parameters: WalkerParameters):
         """Initialize the walker with the given random walk parameters dataclass."""
         self.parameters = parameters
 
