@@ -5,11 +5,13 @@
 import random
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from typing import Dict, Iterable, Optional
+from typing import Dict, Optional, Union
 
-from igraph import Graph, Vertex
+import igraph
+import networkx
+from dataclasses_json import dataclass_json
 
-from ..typing import Walk
+from ..typing import Walk, Walks
 
 __all__ = [
     'WalkerParameters',
@@ -17,6 +19,7 @@ __all__ = [
 ]
 
 
+@dataclass_json
 @dataclass
 class WalkerParameters:
     """Parameters for random walks."""
@@ -58,14 +61,34 @@ class Walker(ABC):
         """Initialize the walker with the given random walk parameters dataclass."""
         self.parameters = parameters
 
-    def get_walks(self, graph: Graph) -> Iterable[Walk]:
+    def get_walks(self, graph: Union[igraph.Graph, networkx.Graph]) -> Walks:
+        if isinstance(graph, igraph.Graph):
+            return self.get_igraph_walks(graph)
+        elif isinstance(graph, networkx.Graph):
+            return self.get_networkx_walks(graph)
+        else:
+            raise TypeError(f'Graph has invalid type: {type(graph)}: {graph}')
+
+    def get_igraph_walks(self, graph: igraph.Graph) -> Walks:
         """Get walks over this graph."""
         for _ in range(self.parameters.number_paths):
             vertices = list(graph.vs)
             random.shuffle(vertices)
             for vertex in vertices:
-                yield self.get_walk(graph, vertex)
+                yield self.get_igraph_walk(graph, vertex)
+
+    def get_networkx_walks(self, graph: networkx.Graph) -> Walks:
+        """Get walks over this graph."""
+        for _ in range(self.parameters.number_paths):
+            nodes = list(graph)
+            random.shuffle(nodes)
+            for node in nodes:
+                yield self.get_networkx_walk(graph, node)
 
     @abstractmethod
-    def get_walk(self, graph: Graph, vertex: Vertex) -> Walk:
+    def get_igraph_walk(self, graph: igraph.Graph, vertex: igraph.Vertex) -> Walk:
+        """Generate one walk."""
+
+    @abstractmethod
+    def get_networkx_walk(self, graph: networkx.Graph, vertex: str) -> Walk:
         """Generate one walk."""

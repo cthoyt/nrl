@@ -2,12 +2,17 @@
 
 """Type hints for NRL."""
 
-from typing import Iterable
+from typing import Iterable, Union
 
-from igraph import Vertex
+import igraph
+import networkx
 
 __all__ = [
+    'Graph',
     'Walk',
+    'Walks',
 ]
 
-Walk = Iterable[Vertex]
+Graph = Union[igraph.Graph, networkx.Graph]
+Walk = Iterable[str]
+Walks = Iterable[Walk]

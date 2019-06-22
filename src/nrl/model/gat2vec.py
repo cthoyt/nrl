@@ -2,15 +2,15 @@
 
 """An implementation of the GAT2VEC extension of the DeepWalk algorithm."""
 
-from typing import Iterable, Optional
+from typing import Iterable, Optional, Union
 
 from gensim.models import Word2Vec
 from igraph import Graph, VertexSeq
 
 from .util import WalkerModel
 from .word2vec import Word2VecParameters
-from ..typing import Walk
-from ..walker import WalkerParameters, StandardRandomWalker
+from ..typing import Walks
+from ..walker import StandardRandomWalker, WalkerParameters
 
 __all__ = [
     'run_gat2vec_unsupervised',
@@ -48,7 +48,7 @@ class Gat2VecUnsupervisedModel(WalkerModel):
 
     def __init__(
             self,
-            structural_vertices: VertexSeq,
+            structural_vertices: Union[Iterable[str], VertexSeq],
             random_walk_parameters: Optional[WalkerParameters] = None,
             word2vec_parameters: Optional[Word2VecParameters] = None
     ) -> None:
@@ -62,9 +62,15 @@ class Gat2VecUnsupervisedModel(WalkerModel):
         self.random_walk_parameters.max_path_length *= 2
 
         # Store structural vertices - other ones will be filtered out
-        self.structural_vertices = structural_vertices
+        if isinstance(structural_vertices, VertexSeq):
+            self.structural_vertices = {
+                vertex['label']
+                for vertex in structural_vertices
+            }
+        else:
+            self.structural_vertices = set(structural_vertices)
 
-    def transform_walks(self, walks: Iterable[Walk]) -> Iterable[Walk]:
+    def transform_walks(self, walks: Walks) -> Walks:
         """Remove vertices that aren't labeled as structural vertices from all walks."""
         for walk in walks:
             yield (

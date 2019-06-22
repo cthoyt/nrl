@@ -2,14 +2,15 @@
 
 """Utilities for NRL algorithms."""
 
+import json
 from abc import ABC, abstractmethod
-from typing import Iterable, Optional, Type
+from typing import Optional, Type
 
 from gensim.models import Word2Vec
-from igraph import Graph
 
 from .word2vec import Word2VecParameters, get_word2vec_from_walks
-from ..typing import Walk
+from ..constants import get_version
+from ..typing import Graph, Walks
 from ..walker import Walker, WalkerParameters
 
 __all__ = [
@@ -42,6 +43,23 @@ class BaseModel(ABC):
     def initialize(self) -> None:
         """Pre-processing the graph, model, and its parameters."""
 
+    def get_metadata(self):
+        """Get metadata for this model."""
+        return {
+            'package_name': 'nrl',
+            'package_version': get_version(),
+            # TODO get losses or training info from word2vec
+            'parameters': {
+                'random_walk': self.random_walk_parameters.to_json(),
+                'word2vec': self.word2vec_parameters.to_json(),
+            },
+        }
+
+    def dump_metadata(self, path: str, *, indent: int = 2, **kwargs) -> None:
+        """Dump metadata for this model to a file."""
+        with open(path, 'w') as file:
+            json.dump(self.get_metadata(), file, indent=indent, **kwargs)
+
 
 class WalkerModel(BaseModel):
     """A base model that uses a random walker to generate walks."""
@@ -52,15 +70,7 @@ class WalkerModel(BaseModel):
         """Fit the DeepWalk model to the graph and parameters."""
         walker = self.walker_cls(self.random_walk_parameters)
         walks = walker.get_walks(graph)
-
-        # stringify output from igraph for Word2Vec
-        walks = (
-            [
-                vertex['label']
-                for vertex in walk
-            ]
-            for walk in self.transform_walks(walks)
-        )
+        walks = self.transform_walks(walks)
 
         self.model = get_word2vec_from_walks(
             walks=walks,
@@ -68,6 +78,6 @@ class WalkerModel(BaseModel):
         )
         return self.model
 
-    def transform_walks(self, walks: Iterable[Walk]) -> Iterable[Walk]:
+    def transform_walks(self, walks: Walks) -> Walks:
         """Transform walks (by default, simply returns the walks)."""
         return walks

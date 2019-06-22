@@ -3,12 +3,15 @@
 """Word2Vec utilities."""
 
 from dataclasses import dataclass
-from typing import Iterable, Optional
+from typing import Optional
 
 import numpy as np
 import pandas as pd
+from dataclasses_json import dataclass_json
 from gensim.models import Word2Vec
 from sklearn.metrics.pairwise import cosine_similarity
+
+from ..typing import Walks
 
 __all__ = [
     'Word2VecParameters',
@@ -18,6 +21,7 @@ __all__ = [
 ]
 
 
+@dataclass_json
 @dataclass
 class Word2VecParameters:
     """Parameters for :py:class:`gensim.models.Word2Vec`."""
@@ -61,18 +65,18 @@ def get_cosine_similarity(word2vec: Word2Vec) -> np.ndarray:
 
 
 def get_word2vec_from_walks(
-        walks: Iterable[Iterable[str]],
-        word2vec_parameters: Optional[Word2VecParameters] = None
+        walks: Walks,
+        word2vec_parameters: Optional[Word2VecParameters] = None,
 ) -> Word2Vec:
     """Train Word2Vec with the given walks."""
     if word2vec_parameters is None:
         word2vec_parameters = Word2VecParameters()
 
-    # TODO hack this up to be an iterator so Word2Vec doesn't complain
-    walks = [list(x) for x in walks]
+    # the docs lie, it actually needs this data structure
+    walks = [list(walk) for walk in walks]
 
     return Word2Vec(
-        walks,
+        sentences=walks,
         size=word2vec_parameters.size,
         window=word2vec_parameters.window,
         min_count=word2vec_parameters.min_count,

@@ -31,11 +31,6 @@ class Node2VecModel(WalkerModel):
 
     walker_cls = BiasedRandomWalker
 
-    NUM_WALKS_KEY = 'num_walks'
-    WALK_LENGTH_KEY = 'walk_length'
-    PROBS_KEY = 'probabilities'
-    FIRST_TRAVEL_KEY = 'first_travel_key'
-
     WEIGHT_KEY = 'weight'
 
     P_KEY = 'p'

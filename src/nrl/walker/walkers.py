@@ -4,8 +4,9 @@
 
 import random
 
+import igraph
+import networkx
 import numpy as np
-from igraph import Graph, Vertex
 
 from .utils import Walker
 from ..typing import Walk
@@ -20,14 +21,24 @@ __all__ = [
 class StandardRandomWalker(Walker):
     """Make standard random walks, choosing the neighbors at a given position uniformly."""
 
-    def get_walk(self, graph: Graph, vertex: Vertex) -> Walk:
+    def get_igraph_walk(self, graph: igraph.Graph, vertex: igraph.Vertex) -> Walk:
         """Get a random walk by choosing from the neighbors at a given position uniformly."""
         tail = vertex
-        yield tail
+        yield tail['label']
         path_length = 1
         # return if the the current path is too long or there if there are no neighbors at the end
         while path_length < self.parameters.max_path_length and graph.neighborhood_size(tail):
             tail = random.choice(tail.neighbors())
+            yield tail['label']
+            path_length += 1
+
+    def get_networkx_walk(self, graph: networkx.Graph, vertex: str) -> Walk:
+        tail = vertex
+        yield tail
+        path_length = 1
+        # return if the the current path is too long or there if there are no neighbors at the end
+        while path_length < self.parameters.max_path_length and graph.neighbors(tail):
+            tail = random.choice(list(graph.neighbors(tail)))
             yield tail
             path_length += 1
 
@@ -40,10 +51,10 @@ class RestartingRandomWalker(Walker):
         """Get the probability with which this walker will restart from the original vertex."""
         return self.parameters.restart_probability
 
-    def get_walk(self, graph: Graph, vertex: Vertex) -> Walk:
+    def get_igraph_walk(self, graph: igraph.Graph, vertex: igraph.Vertex) -> Walk:
         """Generate one random walk for one vertex, with the probability, alpha, of restarting."""
         tail = vertex
-        yield tail
+        yield tail['label']
         path_length = 1
 
         while path_length < self.parameters.max_path_length and graph.neighborhood_size(tail):
@@ -51,6 +62,21 @@ class RestartingRandomWalker(Walker):
                 vertex
                 if self.restart_probability <= random.random() else
                 random.choice(tail.neighbors())
+            )
+            yield tail['label']
+            path_length += 1
+
+    def get_networkx_walk(self, graph: networkx.Graph, vertex: str) -> Walk:
+        """Generate one random walk for one vertex, with the probability, alpha, of restarting."""
+        tail = vertex
+        yield tail
+        path_length = 1
+
+        while path_length < self.parameters.max_path_length and graph.neighbors(tail):
+            tail = (
+                vertex
+                if self.restart_probability <= random.random() else
+                random.choice(list(graph.neighbors(tail)))
             )
             yield tail
             path_length += 1
@@ -69,14 +95,19 @@ class BiasedRandomWalker(Walker):
         """Get the sampling strategy for this walker."""
         return self.parameters.sampling_strategy
 
-    def get_walk(self, graph: Graph, vertex: Vertex) -> Walk:
+    def _check(self, vertex):
+        return (
+                vertex in self.sampling_strategy and
+                self.NUM_WALKS_KEY in self.sampling_strategy[vertex] and
+                self.sampling_strategy[vertex][self.NUM_WALKS_KEY] <= self.parameters.number_paths
+        )
+
+    def get_igraph_walk(self, graph: igraph.Graph, vertex: igraph.Vertex) -> Walk:
         """Generate second-order random walks biased by edge weights."""
         if self.parameters.max_path_length < 2:
             raise ValueError("The path length for random walk is less than 2, which doesn't make sense")
 
-        if (vertex in self.sampling_strategy and
-                self.NUM_WALKS_KEY in self.sampling_strategy[vertex] and
-                self.sampling_strategy[vertex][self.NUM_WALKS_KEY] <= self.parameters.number_paths):
+        if self._check(vertex):
             return
 
         # Start walk
@@ -109,3 +140,6 @@ class BiasedRandomWalker(Walker):
 
             yield tail
             path_length += 1
+
+    def get_networkx_walk(self, graph: networkx.Graph, vertex: str) -> Walk:
+        raise NotImplementedError
