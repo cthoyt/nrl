@@ -78,6 +78,10 @@ class WalkerModel(BaseModel):
         )
         return self.model
 
+    def save(self, *args, **kwargs):
+        """Save the Word2Vec model."""
+        return self.model.save(*args, **kwargs)
+
     def transform_walks(self, walks: Walks) -> Walks:
         """Transform walks (by default, simply returns the walks)."""
         return walks
