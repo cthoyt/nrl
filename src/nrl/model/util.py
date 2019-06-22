@@ -50,8 +50,8 @@ class BaseModel(ABC):
             'package_version': get_version(),
             # TODO get losses or training info from word2vec
             'parameters': {
-                'random_walk': self.random_walk_parameters.to_json(),
-                'word2vec': self.word2vec_parameters.to_json(),
+                'random_walk': WalkerParameters.schema().dump(self.random_walk_parameters),
+                'word2vec': Word2VecParameters.schema().dump(self.word2vec_parameters),
             },
         }
 
