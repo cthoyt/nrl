@@ -60,6 +60,27 @@ class BaseModel(ABC):
         with open(path, 'w') as file:
             json.dump(self.get_metadata(), file, indent=indent, **kwargs)
 
+    def to_embeddingdb(self, session=None, use_tqdm: bool = False):
+        """Upload to the embedding database.
+
+        :param session: Optional SQLAlchemy session
+        :param use_tqdm: Use :mod:`tqdm` progress bar?
+        :rtype: embeddingdb.sql.models.Collection
+        """
+        from embeddingdb.sql.io import upload_word2vec
+
+        return upload_word2vec(
+            self.model,
+            package_name='nrl',
+            package_version=get_version(),
+            extras={
+                'random_walk': WalkerParameters.schema().dump(self.random_walk_parameters),
+                'word2vec': Word2VecParameters.schema().dump(self.word2vec_parameters),
+            },
+            session=session,
+            use_tqdm=use_tqdm,
+        )
+
 
 class WalkerModel(BaseModel):
     """A base model that uses a random walker to generate walks."""
