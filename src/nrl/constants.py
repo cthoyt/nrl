@@ -9,5 +9,6 @@ __all__ = [
 
 VERSION = '0.0.2-dev'
 
+
 def get_version() -> str:
     return VERSION
